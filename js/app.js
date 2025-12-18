@@ -19,19 +19,12 @@ function adminLogin() {
 
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
-            const userId = userCredential.user.uid;
-            return db.collection('faculties').doc(userId).get();
-        })
-        .then(doc => {
-            if (doc.exists) {
-                errorEl.textContent = '';
-            } else {
-                errorEl.textContent = 'This is a student account. Please use admin/faculty credentials.';
-                errorEl.style.color = 'red';
-                auth.signOut();
-            }
+            console.log('Login successful, user:', userCredential.user.uid);
+            // Don't check faculties here, let onAuthStateChanged handle it
+            errorEl.textContent = '';
         })
         .catch(error => {
+            console.error('Login error:', error);
             errorEl.textContent = error.message;
             errorEl.style.color = 'red';
         });
@@ -48,6 +41,10 @@ function adminLogout() {
 // Check Auth State
 auth.onAuthStateChanged(user => {
     if (user) {
+        // Don't check role if already on student profile page
+        if (window.location.pathname.includes('student-profile.html')) {
+            return;
+        }
         checkUserRole(user.uid);
     } else {
         document.getElementById('loginContainer').style.display = 'flex';
@@ -57,10 +54,30 @@ auth.onAuthStateChanged(user => {
 
 // Check User Role
 function checkUserRole(userId) {
-    db.collection('faculties').doc(userId).get()
+    console.log('Checking user role for:', userId);
+    
+    // First check if user is a student
+    db.collection('users').doc(userId).get()
+        .then(userDoc => {
+            console.log('User doc exists:', userDoc.exists);
+            if (userDoc.exists) {
+                console.log('Student found, redirecting to profile...');
+                // Student login - redirect to profile page
+                setTimeout(() => {
+                    window.location.href = 'student-profile.html';
+                }, 100);
+                return Promise.reject('student_redirect');
+            } else {
+                console.log('Not a student, checking faculties...');
+                // Check if user is faculty/admin
+                return db.collection('faculties').doc(userId).get();
+            }
+        })
         .then(doc => {
-            if (doc.exists) {
+            console.log('Faculty doc exists:', doc && doc.exists);
+            if (doc && doc.exists) {
                 currentUserRole = doc.data().role;
+                console.log('Faculty/Admin role:', currentUserRole);
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'flex';
                 loadStudents();
@@ -70,13 +87,19 @@ function checkUserRole(userId) {
                     if (facultyMenu) facultyMenu.style.display = 'none';
                 }
             } else {
+                console.log('No account found');
                 document.getElementById('loginContainer').style.display = 'flex';
                 document.getElementById('dashboard').style.display = 'none';
-                alert('This is a student account. Please use admin/faculty credentials.');
+                alert('Account not found. Please contact admin.');
                 auth.signOut();
             }
         })
         .catch(error => {
+            if (error === 'student_redirect') {
+                console.log('Student redirect initiated');
+                return;
+            }
+            console.error('Error:', error);
             document.getElementById('loginContainer').style.display = 'flex';
             document.getElementById('dashboard').style.display = 'none';
             alert('Error checking user role. Please try again.');
