@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Admin Panel</title>
+    <title>Elite Login Panel</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="login-container" id="loginContainer" style="display:none;">
         <div class="login-card">
-            <h1>Elite Admin Panel</h1>
+            <h1>Elite Login Panel</h1>
             <input type="email" id="adminEmail" placeholder="Admin Email">
             <input type="password" id="adminPassword" placeholder="Password">
             <button onclick="adminLogin()">Login</button>
@@ -25,7 +25,7 @@
         <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
         
         <nav class="sidebar" id="sidebar">
-            <h2>Elite Admin</h2>
+            <h2>Elite Login</h2>
             <ul>
                 <li onclick="showSection('students'); closeMobileMenu()">👨🎓 Students</li>
                 <li onclick="showSection('faculties'); closeMobileMenu()">👨🏫 Faculties</li>
