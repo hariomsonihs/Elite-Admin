@@ -71,6 +71,7 @@
                     <div class="info-label">Pending Fees</div>
                     <div class="info-value" id="pendingFees">-</div>
                 </div>
+                <button class="logout-btn" onclick="resetPassword()" style="background:#3498db; margin-bottom:10px;">🔑 Reset Password</button>
                 <button class="logout-btn" onclick="logout()">🚪 Logout</button>
             </div>
         </div>
@@ -145,6 +146,19 @@
                 alert('Error loading profile: ' + error.message);
             }
         });
+
+        function resetPassword() {
+            const user = firebase.auth().currentUser;
+            if (user && user.email) {
+                firebase.auth().sendPasswordResetEmail(user.email)
+                    .then(() => {
+                        alert('Password reset email sent to ' + user.email);
+                    })
+                    .catch(error => {
+                        alert('Error: ' + error.message);
+                    });
+            }
+        }
 
         function logout() {
             firebase.auth().signOut().then(() => {
